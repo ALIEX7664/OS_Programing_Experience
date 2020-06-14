@@ -1,365 +1,370 @@
-#include<iostream>
-#include<fcntl.h>
-#include<unistd.h>
-#include<vector>
+#include <iostream>
+#include <fcntl.h>
+#include <unistd.h>
+#include <vector>
 
 using namespace std;
 
-class CA_LL
+class A
 {
- private:
-	 int val;	//定义变量val
-	 int val2;
- public:
-	 
-	 CA_LL() //初始化		
-	 {
+private:
+	//定义成员变量
+	int val;
+	int val2;
+
+public:
+	//定义析构函数和构造函数
+	A()
+	{
 		int val = 0;
 		int val2 = 0;
-	 }
-	 
-	 explicit CA_LL(int in,int in2)
-	 {
-		 val = in;
-		 val2 = in2;
-	 }
-	 //析构函数
-	 ~CA_LL()
-	 {	 
-	 }
+	}
+	explicit A(int in, int in2)
+	{
+		val = in;
+		val2 = in2;
+	}
+	~A()
+	{
+	}
 
- public:
-	 bool Serialize(int fd) const  //序列化，主要执行写操作
-	 {
-
-		  if(write(fd, &val, sizeof(int)) == -1)	//写操作，若出现错误关闭文件并返回
-		  {
-		 	cout << "val write error" << endl;	
-			return false;
-		  }
-
-		  if(write(fd, &val2, sizeof(int)) == -1)
-		  {
-			  cout << "val2 write error" << endl;
-			  return false;
-		  
-		  }
-
-		   cout << "CA_LL write:" << val << " "<< val2  << endl;
-		  return true;
-
-		  
-
-	 }
-
-	 bool Deserialize(int fd) //反序列化，执行读操作
-	 {
-		
-	 		
-	         int readc,readc2;
-		readc = read(fd, &val, sizeof(int));
-	
-	
-
-		if(readc == -1 || readc == 0 ) 	
-		 { 
-			return false;
-		 
-		 }
-
-		readc2 = read(fd,&val2,sizeof(int));
-
-		if(readc2 == -1 || readc == 0)
+public:
+	bool Serialize(int fd) const //序列化，主要执行写操作
+	{
+		//写操作，若出现错误返回
+		if (write(fd, &val, sizeof(int)) == -1)
 		{
-			return false;	
+			perror("val write error");
+			return false;
 		}
 
-		
+		if (write(fd, &val2, sizeof(int)) == -1) //写操作
+		{
+			perror("val2 write error");
+			return false;
+		}
+		//写成功，输出写入的结果
+		cout << "A write:" << val << " " << val2 << endl;
 		return true;
+	}
 
-	 }
+	bool Deserialize(int fd) //反序列化，主要执行读操作
+	{
+		//读操作，若出现错误或读结束关闭文件并返回
+		int readc = read(fd, &val, sizeof(int));
+		if (readc == -1)
+		{
+			perror("read error"); //错误输出
+			close(fd);			  //关闭文件
+			return false;
+		}
+		else if (readc == 0)
+		{
+			close(fd);
+			return false;
+		}
 
-	 void  ReturnVal()
-	 {
-	 	cout  << val << " " << val2 <<endl; 	 
-	 }
+		int readc2 = read(fd, &val2, sizeof(int)); //读操作
+		if (readc2 == -1)
+		{
+			perror("read error"); //错误输出
+			close(fd);
+			return false;
+		}
+		else if (readc2 == 0)
+		{
+			close(fd);
+			return false;
+		}
+
+		return true; //执行成功，返回true
+	}
+
+	void ReturnVal() //用于验证过程是否成功
+	{
+		cout << "A:" << val << " " << val2 << endl;
+	}
 };
 
-class CB_LL
+class B
 {
- private:
-	 int x;
-	 int y;
+private:
+	int x;
+	int y;
 
- public:
-	 CB_LL()
-	 {
-	  	int x = 0;
+public:
+	B()
+	{
+		int x = 0;
 		int y = 0;
-	 } 
-	 
-	 explicit CB_LL(int in, int in2)
-	 {
+	}
+	explicit B(int in, int in2)
+	{
 		x = in;
-	        y = in2;
-	 }
-
-	 ~CB_LL()
-	 {
-	 }
-
- public:
-	bool Serialize(int fd)
+		y = in2;
+	}
+	~B()
 	{
-		if(write(fd, &x , sizeof(int)) == -1)
+	}
+
+public:
+	bool Serialize(int fd) //序列化，主要执行写操作
+	{
+		if (write(fd, &x, sizeof(int)) == -1) //写操作
 		{
-			cout << "x wirte error" << endl;
+			perror("x write error");
 			return false;
 		}
-		
-		if(write(fd, &y, sizeof(int)) == -1)
+
+		if (write(fd, &y, sizeof(int)) == -1) //写操作
 		{
-			cout << "y write error" << endl;
+			perror("y write error");
 			return false;
 		}
-		
-		cout << "CB_LL wirte:" << x << " " << y << endl;
+		//写成功，输出写入的结果
+		cout << "B write:" << x << " " << y << endl;
 		return true;
 	}
 
-	bool Deserialize(int fd)
+	bool Deserialize(int fd) //反序列化，主要执行读操作
 	{
-		int readc,readc2;
-
-		readc = read(fd, &x, sizeof(int));
-		if(readc == -1 || readc == 0)
+		int readc = read(fd, &x, sizeof(int)); //读操作
+		if (readc == -1)
 		{
+			perror("read error"); //错误输出
+			close(fd);			  //关闭文件
 			return false;
 		}
-		
-		readc2 = read(fd, &y, sizeof(int));
-		if(readc == -1 || readc == 0)
+		else if (readc == 0)
 		{
+			close(fd);
 			return false;
 		}
 
-		return true;
-		
+		int readc2 = read(fd, &y, sizeof(int)); //读操作
+		if (readc2 == -1)
+		{
+			perror("read error"); //错误输出
+			close(fd);			  //关闭文件
+			return false;
+		}
+		else if (readc2 == 0)
+		{
+			close(fd);
+			return false;
+		}
+
+		return true; //执行成功，返回true
 	}
 
-	void  ReturnVal()
+	void ReturnVal() //用于验证过程是否成功
 	{
-		cout   << x << " " << y << endl; 
+		cout << "B:" << x << " " << y << endl;
 	}
 };
 
-struct Serialized
+struct Serialized //定义存储A,B类类型的结构体
 {
-	int nType;
-	void *pObj;
+	int nType;	//定义类型区分A,B,A:0 B:1
+	void *pObj; //定义void型指针,通过强制类型转换保存A类和B类成员的地址
 };
 
-class SerializerForCA_LLs
+class Serializer //序列化器，完成主要的序列化和反序列化操作
 {
-
-
- public:
-	SerializerForCA_LLs()
+public:
+	Serializer()
 	{
 	}
-	~SerializerForCA_LLs()
+	~Serializer()
 	{
 	}
-	
- public:
-	 bool Serialize(const char *pFilePath, const std::vector<Serialized> &v) const
-	 {
-		int fd;
-		fd = open(pFilePath, O_RDWR | O_CREAT | O_TRUNC,0666);//打开文件，若文件不存在则创建，并清空文件内容
 
-		 if(fd == -1)
+public:
+	//序列化函数，完成对A类与B类的序列化操作
+	bool Serialize(const char *path, const std::vector<Serialized> &v) const
+	{
+		//打开文件，若文件不存在则创建，并清空文件内容
+		int fd = open(path, O_RDWR | O_CREAT | O_TRUNC, 0666);
+		if (fd == -1)
 		{
-			cout << "ser open error" << endl;
+			perror("ser open error");
 			return false;
 		}
 
-		for(int i = 0 ; i < v.size(); i++)
+		for (int i = 0; i < v.size(); i++)
 		{
-			
-			if(v[i].nType == 0)
+
+			if (v[i].nType == 0) //判断为A类型
 			{
-				CA_LL *A;
-				A =(CA_LL*)v[i].pObj;
-                   
+				//定义A类指针
+				A *a;
+				//强转v[i]中结构体变量pObj为A类指针类型，并赋给指针a
+				a = (A *)v[i].pObj;
 
-				write(fd, &v[i].nType, sizeof(int));
+				write(fd, &v[i].nType, sizeof(int)); //将A类型类型写入
 
-				if(A -> Serialize(fd) == false)
+				if (a->Serialize(fd) == false) //执行A类的序列化操作
 				{
 					close(fd);
 					return false;
 				}
-                                
-
 			}
-			else if(v[i].nType == 1)
+			else if (v[i].nType == 1)
 			{
-				CB_LL *B;//不能动态分配内存，会使指针指向发生变化而无法释放;
-				B =(CB_LL*)v[i].pObj; //记得强制类型转换
-				
-				write(fd, &v[i].nType, sizeof(int));
+				//定义B类指针
+				B *b;
+				//强转v[i]中结构体变量pObj为B类指针类型，并赋给指针b
+				b = (B *)v[i].pObj;
 
-				if(B -> Serialize(fd) == false)
+				write(fd, &v[i].nType, sizeof(int)); //将B类型类型写入
+
+				if (b->Serialize(fd) == false) //执行B类的序列化操作
 				{
 					close(fd);
 					return false;
 				}
-
-			
 			}
 		}
 
-		cout << "Serialize vector  succeed" << endl;
+		cout << "Serialize vector  succeed" << endl; //输出执行成功语句
+		close(fd);
+		return true; //执行完毕无错误，返回
+	}
 
-		return true;	//执行完毕无错误，返回
-	 }
+	//反序列化函数，完成对A类与B类的反序列化操作
+	bool Deserialize(const char *path, std::vector<Serialized> &v)
+	{
+		int fd = open(path, O_RDWR); //打开文件，保存文件描述符
+		if (fd == -1)
+		{
+			perror("deser open error");
+			return false;
+		}
 
-	 bool Deserialize(const char* pFilePath, std::vector<Serialized> &v) 
-	 {
-		 int fd;
-		 fd = open(pFilePath, O_RDWR);
-		 if(fd == -1)
-		 {
-			 cout << "open error" <<endl;
-			 return false;
-		 }
+		while (1)
+		{
+			int Type;		//用于存储文件中读取的类的类型
+			Serialized ser; //用于保存文件内容中的类的类型和类的对象
 
-	
-		 while(1)
-		 {
-			int r,Type;
-			Serialized ser;
-
-			r = read(fd, &Type ,sizeof(int));//最后一次循环会在这里读出0，所以return false 这里把-1，0拆开判断了
-
-			if(r == -1)
-		        {
-			       return false;
-		        }
-			else if(r == 0)
+			//读取首字节，判断类型
+			int readc = read(fd, &Type, sizeof(int));
+			if (readc == -1)
 			{
-				cout << "Deserialize vector succeed" << endl;
-				return true;
+				perror("read error");
+				close(fd);
+				return false;
 			}
-			
-			if(Type == 0)
+			else if (readc == 0) //最后一次循环读出0字节，表示读取完毕
 			{
-		
-				CA_LL *A = new CA_LL();//此时只分配一个指针，并没有调用构造函数，所以要通过new来调用
-				if(A -> Deserialize(fd) == true)
+				break; //跳出循环
+			}
+
+			if (Type == 0)
+			{
+				A *a = new A(); //动态分配A类指针
+
+				if (a->Deserialize(fd) == true) //对a进行反序列化
 				{
-					ser.nType = Type;
-					ser.pObj = A ; //这里会出现一个问题，若A被delete了，那指向的分配内存也会被释放，此时pobj若直接指向A,那么只会存在随机值
+					ser.nType = Type; //保存读取的Type类型
+					ser.pObj = a;	  //保存经过反序列化的a指针
+
+					//将结构体ser装入vector容器中保存
 					v.push_back(ser);
 				}
-
-			
-
-			
 			}
-			else if(Type == 1)
+			else if (Type == 1)
 			{
-				CB_LL *B = new CB_LL();
+				B *b = new B(); //动态分配B类指针
 
-				if(B -> Deserialize(fd) == true)
+				if (b->Deserialize(fd) == true)
 				{
-					ser.nType = Type;
-					ser.pObj = B;
+					ser.nType = Type; //保存读取的Type类型
+					ser.pObj = b;	  //保存经过反序列化的b指针
+
+					//将结构体ser装入vector容器中保存
 					v.push_back(ser);
 				}
-
 			}
 			else
 			{
-				break;
+				return false; //读取类型不属于任何已存在类的类型
 			}
-		 }
-		
-			
-		
-		 return true;
-		 
-	 }
+		}
 
+		cout << "Deserialize vector succeed" << endl; //输出执行成功语句
+		close(fd);
+		return true;
+	}
 };
 
-
-int main()
+int main(void)
 {
-       {
-	vector<Serialized> vec;
-	Serialized ser;
-        Serialized ser1;
-	Serialized ser2;
-      	
-	CA_LL a(10,12);
-	ser.nType = 0;
-	ser.pObj = &a;
-	vec.push_back(ser);
-
-	CB_LL b(1,2);
-	ser1.nType = 1;
-	ser1.pObj = &b;
-	vec.push_back(ser1);
-
-	CB_LL b2(3,4);
-	ser2.nType = 1;
-	ser2.pObj = &b2;
-	vec.push_back(ser2);
-
-        CA_LL a2(11,20);
-	Serialized ser3;
-	ser3.pObj = &a2;
-	ser3.nType = 0;
-	vec.push_back(ser3);
-   	
-	SerializerForCA_LLs s;
-	s.Serialize("data.txt",vec);
-       }
-
-       {
-	vector<Serialized> vec;
-	SerializerForCA_LLs s;
-
-	s.Deserialize("data.txt",vec);
-	for(int i = 0 ; i < vec.size() ; i++)
 	{
-		if(vec[i].nType == 0)
-		{
-	 		cout << "Type:A " <<endl;
+		//定义vector容器和Serialized结构体变量
+		vector<Serialized> vec;
+		Serialized ser;
+		Serialized ser1;
+		Serialized ser2;
+		Serialized ser3;
+		Serialized ser4;
 
+		A a(10, 12);		//定义A实例对象
+		ser.nType = 0;		//存储A的类型值0
+		ser.pObj = &a;		//使ser的pObj指针指向A实例对象
+		vec.push_back(ser); //将ser装入vector容器中
 
-			CA_LL *a;
-			a = (CA_LL*)vec[i].pObj;
-			a -> ReturnVal();
-			
+		B b(1, 2);			 //定义B实例对象
+		ser1.nType = 1;		 //存储B的类型值1
+		ser1.pObj = &b;		 //使ser1的pObj指针指向A实例对象
+		vec.push_back(ser1); //将ser1装入vector容器中
 
-		}
-		else if(vec[i].nType == 1)
-		{
-			cout << "Type:B " << endl;
+		B b2(3, 4);
+		ser2.nType = 1;
+		ser2.pObj = &b2;
+		vec.push_back(ser2);
 
-			CB_LL *b;
-			b = (CB_LL*)vec[i].pObj;
-			b -> ReturnVal();
-			
-		}
+		A a2(11, 20);
+		ser3.pObj = &a2;
+		ser3.nType = 0;
+		vec.push_back(ser3);
+
+		B b3(7, 9);
+		ser4.nType = 1;
+		ser4.pObj = &b3;
+		vec.push_back(ser4);
+
+		Serializer s;				  //定义序列化器s
+		s.Serialize("data.txt", vec); //执行序列化函数
 	}
 
-       }
+	{
+		//定义vector容器vec和序列化器s
+		vector<Serialized> vec;
+		Serializer s;
 
-
-
+		//执行反序列化，通过vector容器获得相应的内容
+		s.Deserialize("data.txt", vec);
+		for (int i = 0; i < vec.size(); i++)
+		{
+			if (vec[i].nType == 0) //若类型为A
+			{
+				//定义A类指针a
+				A *a;
+				//强制转换vector容器中的pObj为A类指针类型,并存入a中
+				a = (A *)vec[i].pObj;
+				//输出结果，验证序列化过程正确性
+				a->ReturnVal();
+			}
+			else if (vec[i].nType == 1) //若类型为A
+			{
+				//定义B类指针b
+				B *b;
+				//强制转换vector容器中的pObj为B类指针类型，并存入b中
+				b = (B *)vec[i].pObj;
+				//输出结果，验证序列化过程正确性
+				b->ReturnVal();
+			}
+		}
+	}
 	return 0;
 }
-
